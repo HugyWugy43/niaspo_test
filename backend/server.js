@@ -3,9 +3,11 @@ const { Client } = require('pg');
 const { createClient: createRedisClient } = require('redis');
 const Docker = require('dockerode');
 const axios = require('axios');
+const k8s = require('@kubernetes/client-node');
 
 const app = express();
 const port = process.env.PORT || 8080;
+const K8S_NAMESPACE = process.env.K8S_NAMESPACE || 'dev-env';
 
 const pgConfig = {
   host: process.env.POSTGRES_HOST || 'db',
@@ -105,6 +107,51 @@ app.get('/api/containers', async (req, res) => {
     res.json({ containers: simplified });
   } catch (err) {
     res.status(500).json({ error: 'Не удалось получить список контейнеров', details: err.message });
+  }
+});
+
+// Логи подов в кластере K8s (работает только когда backend запущен внутри кластера)
+app.get('/api/k8s/logs', async (req, res) => {
+  const deployment = (req.query.deployment || 'backend').toLowerCase();
+  const tail = Math.min(parseInt(req.query.tail, 10) || 100, 500);
+
+  if (!process.env.KUBERNETES_SERVICE_HOST) {
+    return res.status(200).json({
+      available: false,
+      message: 'Логи кластера доступны только когда приложение запущено в Kubernetes (облако YC и т.п.).',
+      logs: null
+    });
+  }
+
+  try {
+    const kc = new k8s.KubeConfig();
+    kc.loadFromCluster();
+    const k8sApi = kc.makeApiClient(k8s.CoreV1Api);
+    const labelSelector = `app=${deployment}`;
+    const pods = await k8sApi.listNamespacedPod(K8S_NAMESPACE, undefined, undefined, undefined, undefined, labelSelector);
+    if (!pods.body.items.length) {
+      return res.status(200).json({
+        available: true,
+        pod: null,
+        deployment,
+        logs: null,
+        message: `Под с меткой app=${deployment} не найден в namespace ${K8S_NAMESPACE}.`
+      });
+    }
+    const podName = pods.body.items[0].metadata.name;
+    const result = await k8sApi.readNamespacedPodLog(podName, K8S_NAMESPACE, undefined, false, tail);
+    res.json({
+      available: true,
+      pod: podName,
+      deployment,
+      logs: result.body || ''
+    });
+  } catch (err) {
+    res.status(500).json({
+      available: true,
+      error: err.message || 'Ошибка при получении логов',
+      logs: null
+    });
   }
 });
 

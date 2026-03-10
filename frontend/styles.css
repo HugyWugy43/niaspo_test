@@ -93,6 +93,23 @@ button.secondary:hover {
   font-size: 0.85rem;
 }
 
+.logs-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.logs-controls label { margin-right: 0.25rem; }
+.logs-controls select, .logs-controls input { padding: 0.35rem 0.5rem; border-radius: 0.35rem; background: #0f172a; border: 1px solid #334155; color: #e2e8f0; }
+.logs-output {
+  max-height: 400px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
 .footer {
   padding: 1rem 1.5rem;
   border-top: 1px solid #1f2937;

@@ -34,21 +34,21 @@
       </section>
 
       <section class="panel">
-        <h2>Управление CI/CD</h2>
-        <button id="deployBtn">Запустить деплой (CI/CD)</button>
-        <div id="deployStatus" class="status"></div>
-      </section>
-
-      <section class="panel">
-        <h2>Описание архитектуры</h2>
-        <ul>
-          <li>Frontend-контейнер (Nginx со статикой)</li>
-          <li>Backend-контейнер (Node.js / Express)</li>
-          <li>PostgreSQL (база данных)</li>
-          <li>Redis (кэш)</li>
-          <li>Proxy-контейнер (Nginx, точка входа)</li>
-        </ul>
-        <p>Все контейнеры разворачиваются автоматически через Docker Compose, Docker Swarm и Kubernetes, а их сборка и обновление интегрированы в конвейер CI/CD.</p>
+        <h2>Логи кластера K8s (облако)</h2>
+        <p class="hint">Просмотр логов подов в развёрнутом кластере (доступно при работе backend в Kubernetes).</p>
+        <div class="logs-controls">
+          <label>Сервис:</label>
+          <select id="logsDeployment">
+            <option value="backend">backend</option>
+            <option value="frontend">frontend</option>
+            <option value="db">db</option>
+            <option value="redis">redis</option>
+          </select>
+          <label>Строк:</label>
+          <input type="number" id="logsTail" value="100" min="10" max="500" step="10" />
+          <button id="logsBtn">Загрузить логи</button>
+        </div>
+        <pre id="logsOutput" class="code logs-output"></pre>
       </section>
     </main>
 

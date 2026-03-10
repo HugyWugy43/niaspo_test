@@ -95,18 +95,29 @@ document.getElementById('containersAllBtn').addEventListener('click', async () =
   }
 });
 
-document.getElementById('deployBtn').addEventListener('click', async () => {
-  const deployDiv = document.getElementById('deployStatus');
-  deployDiv.textContent = 'Отправка запроса на запуск CI/CD...';
+document.getElementById('logsBtn').addEventListener('click', async () => {
+  const out = document.getElementById('logsOutput');
+  out.textContent = 'Загрузка...';
+  const deployment = document.getElementById('logsDeployment').value;
+  const tail = document.getElementById('logsTail').value || 100;
   try {
-    const resp = await fetch('/api/deploy', { method: 'POST' });
-    const data = await resp.json();
-    if (!resp.ok) {
-      throw new Error(data.error || resp.statusText);
+    const data = await fetchJson(`/api/k8s/logs?deployment=${encodeURIComponent(deployment)}&tail=${encodeURIComponent(tail)}`);
+    if (!data.available) {
+      out.textContent = data.message || 'Логи недоступны.';
+      return;
     }
-    deployDiv.textContent = data.message || 'CI/CD запущен';
+    if (data.error) {
+      out.textContent = 'Ошибка: ' + data.error;
+      return;
+    }
+    if (data.message && !data.logs) {
+      out.textContent = data.message;
+      return;
+    }
+    const header = data.pod ? `Pod: ${data.pod}\n\n` : '';
+    out.textContent = header + (data.logs || '(пусто)');
   } catch (err) {
-    deployDiv.textContent = 'Ошибка запуска CI/CD: ' + err.message;
+    out.textContent = 'Ошибка: ' + err.message;
   }
 });
 
