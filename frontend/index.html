@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Демо тестовой среды (Docker / Swarm / Kubernetes)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <h1>Тестовая среда разработчика</h1>
+      <p>Docker · Docker Compose · Docker Swarm · Kubernetes · CI/CD</p>
+    </header>
+
+    <main class="container">
+      <section class="panel">
+        <h2>Статус сервисов</h2>
+        <button id="refreshBtn">Обновить статус</button>
+        <div id="status" class="status"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Проверка связи с backend</h2>
+        <button id="helloBtn">Отправить запрос</button>
+        <pre id="helloResult" class="code"></pre>
+      </section>
+
+      <section class="panel">
+        <h2>Развёрнутые контейнеры Docker</h2>
+        <button id="containersBtn">Показать контейнеры</button>
+        <div id="containersList" class="status"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Описание архитектуры</h2>
+        <ul>
+          <li>Frontend-контейнер (Nginx со статикой)</li>
+          <li>Backend-контейнер (Node.js / Express)</li>
+          <li>PostgreSQL (база данных)</li>
+          <li>Redis (кэш)</li>
+          <li>Proxy-контейнер (Nginx, точка входа)</li>
+        </ul>
+        <p>Все контейнеры разворачиваются автоматически через Docker Compose, Docker Swarm и Kubernetes, а их сборка и обновление интегрированы в конвейер CI/CD.</p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Курсовая работа: инфраструктура автоматического развертывания тестовых сред</span>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+  </html>
+

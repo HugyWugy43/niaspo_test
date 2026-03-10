@@ -1,0 +1,15 @@
+{
+  "name": "dev-env-backend",
+  "version": "1.0.0",
+  "description": "Простой backend для демонстрации контейнерной инфраструктуры и тестовых сред",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.11.3",
+    "redis": "^4.6.13",
+    "dockerode": "^4.0.2"
+  }
+}
