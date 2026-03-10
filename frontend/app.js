@@ -49,30 +49,49 @@ document.getElementById('helloBtn').addEventListener('click', async () => {
   }
 });
 
+function renderContainers(listDiv, data, showAll) {
+  if (!data.containers || data.containers.length === 0) {
+    listDiv.textContent = showAll ? 'Контейнеры не найдены.' : 'Контейнеры проекта не найдены. Запустите docker compose up.';
+    return;
+  }
+  const title = document.createElement('p');
+  title.className = 'hint';
+  title.textContent = showAll ? 'Все контейнеры на хосте Docker:' : 'Контейнеры этой тестовой среды:';
+  const ul = document.createElement('ul');
+  data.containers.forEach(c => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <strong>${c.names.join(', ')}</strong> (${c.id})<br/>
+      Образ: ${c.image}<br/>
+      Состояние: ${c.state} — ${c.status || 'n/a'}<br/>
+      Сети: ${c.networks && c.networks.length ? c.networks.join(', ') : 'нет данных'}
+    `;
+    ul.appendChild(li);
+  });
+  listDiv.innerHTML = '';
+  listDiv.appendChild(title);
+  listDiv.appendChild(ul);
+}
+
 document.getElementById('containersBtn').addEventListener('click', async () => {
   const listDiv = document.getElementById('containersList');
   listDiv.textContent = 'Загрузка...';
   try {
     const data = await fetchJson('/api/containers');
-    if (!data.containers || data.containers.length === 0) {
-      listDiv.textContent = 'Контейнеры не найдены.';
-      return;
-    }
-    const ul = document.createElement('ul');
-    data.containers.forEach(c => {
-      const li = document.createElement('li');
-      li.innerHTML = `
-        <strong>${c.names.join(', ')}</strong> (${c.id})<br/>
-        Образ: ${c.image}<br/>
-        Состояние: ${c.state} — ${c.status || 'n/a'}<br/>
-        Сети: ${c.networks && c.networks.length ? c.networks.join(', ') : 'нет данных'}
-      `;
-      ul.appendChild(li);
-    });
-    listDiv.innerHTML = '';
-    listDiv.appendChild(ul);
+    renderContainers(listDiv, data, false);
   } catch (err) {
     listDiv.textContent = 'Ошибка: ' + err.message + '. Убедитесь, что backend имеет доступ к docker.sock.';
+  }
+});
+
+document.getElementById('containersAllBtn').addEventListener('click', async () => {
+  const listDiv = document.getElementById('containersList');
+  listDiv.textContent = 'Загрузка...';
+  try {
+    const data = await fetchJson('/api/containers?projectOnly=false');
+    renderContainers(listDiv, data, true);
+  } catch (err) {
+    listDiv.textContent = 'Ошибка: ' + err.message;
   }
 });
 

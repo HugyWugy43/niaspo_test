@@ -46,6 +46,12 @@ body {
   margin-bottom: 0.75rem;
 }
 
+.panel .hint {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin: 0 0 0.5rem 0;
+}
+
 button {
   padding: 0.5rem 0.9rem;
   border-radius: 999px;
@@ -59,6 +65,17 @@ button {
 
 button:hover {
   filter: brightness(1.1);
+}
+
+button.secondary {
+  background: transparent;
+  border: 1px solid #475569;
+  color: #94a3b8;
+}
+
+button.secondary:hover {
+  background: #1e293b;
+  color: #e2e8f0;
 }
 
 .status {

@@ -74,8 +74,25 @@ app.get('/api/hello', (req, res) => {
 
 app.get('/api/containers', async (req, res) => {
   try {
-    const containers = await docker.listContainers({ all: true });
-    const simplified = containers.map(c => ({
+    const allContainers = await docker.listContainers({ all: true });
+    const projectOnly = req.query.projectOnly !== 'false'; // по умолчанию только контейнеры проекта
+
+    let toShow = allContainers;
+    if (projectOnly && process.env.HOSTNAME) {
+      // backend в Docker имеет HOSTNAME = короткий id контейнера; ищем свои сети
+      const self = allContainers.find(c => c.Id.startsWith(process.env.HOSTNAME) || c.Names.some(n => n.includes(process.env.HOSTNAME)));
+      const ourNetworks = self && self.NetworkSettings && self.NetworkSettings.Networks
+        ? Object.keys(self.NetworkSettings.Networks)
+        : [];
+      if (ourNetworks.length > 0) {
+        toShow = allContainers.filter(c =>
+          c.NetworkSettings && c.NetworkSettings.Networks &&
+          ourNetworks.some(net => c.NetworkSettings.Networks[net])
+        );
+      }
+    }
+
+    const simplified = toShow.map(c => ({
       id: c.Id.substring(0, 12),
       names: c.Names,
       image: c.Image,

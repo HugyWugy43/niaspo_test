@@ -44,3 +44,34 @@ kubectl apply -f k8s/ingress.yaml
 
 Далее в hosts можно прописать `dev-env.local` и настроить ingress-контроллер.
 
+## Секрет KUBE_CONFIG_B64 для GitHub Actions
+
+Чтобы job `deploy` подключался к кластеру, в репозитории нужен секрет `KUBE_CONFIG_B64`.
+
+### Если кластер использует exec (Yandex Cloud `yc`, AWS `aws`, GCP `gcloud` и т.п.)
+
+Стандартный kubeconfig вызывает локальную утилиту (`yc.exe` и т.д.). В GitHub Actions её нет, поэтому нужен **статический** kubeconfig с токеном.
+
+1. На ПК, где уже есть доступ к кластеру (`kubectl` работает), выполни:
+   ```powershell
+   cd C:\Users\Admin\niaspo
+   .\scripts\create-static-kubeconfig.ps1
+   ```
+   Скрипт создаёт ServiceAccount в кластере (файл `k8s/sa-for-ci.yaml`), достаёт токен и сохраняет статический kubeconfig в `static-kubeconfig.yaml`.
+
+2. Закодируй файл в base64 и добавь в GitHub:
+   ```powershell
+   [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes((Get-Content -Path ".\static-kubeconfig.yaml" -Raw)))
+   ```
+   GitHub → Settings → Secrets and variables → Actions → New repository secret → Name: `KUBE_CONFIG_B64`, Value: вставь строку.
+
+### Если кластер уже отдаёт kubeconfig с токеном/сертификатом (без exec)
+
+Можно кодировать обычный `~/.kube/config`:
+
+```powershell
+[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes((Get-Content -Path "$env:USERPROFILE\.kube\config" -Raw)))
+```
+
+Скопируй вывод целиком → GitHub → Settings → Secrets and variables → Actions → New repository secret → Name: `KUBE_CONFIG_B64`, Value: вставь строку.
+
