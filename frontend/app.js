@@ -76,3 +76,18 @@ document.getElementById('containersBtn').addEventListener('click', async () => {
   }
 });
 
+document.getElementById('deployBtn').addEventListener('click', async () => {
+  const deployDiv = document.getElementById('deployStatus');
+  deployDiv.textContent = 'Отправка запроса на запуск CI/CD...';
+  try {
+    const resp = await fetch('/api/deploy', { method: 'POST' });
+    const data = await resp.json();
+    if (!resp.ok) {
+      throw new Error(data.error || resp.statusText);
+    }
+    deployDiv.textContent = data.message || 'CI/CD запущен';
+  } catch (err) {
+    deployDiv.textContent = 'Ошибка запуска CI/CD: ' + err.message;
+  }
+});
+

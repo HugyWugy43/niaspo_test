@@ -8,9 +8,9 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_BACKEND: ${{ github.repository_owner }}/dev-env-backend
-  IMAGE_FRONTEND: ${{ github.repository_owner }}/dev-env-frontend
-  IMAGE_PROXY: ${{ github.repository_owner }}/dev-env-proxy
+  IMAGE_BACKEND: ${{ toLower(github.repository_owner) }}/dev-env-backend
+  IMAGE_FRONTEND: ${{ toLower(github.repository_owner) }}/dev-env-frontend
+  IMAGE_PROXY: ${{ toLower(github.repository_owner) }}/dev-env-proxy
   IMAGE_TAG: latest
 
 jobs:

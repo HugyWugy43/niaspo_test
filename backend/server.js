@@ -2,6 +2,7 @@ const express = require('express');
 const { Client } = require('pg');
 const { createClient: createRedisClient } = require('redis');
 const Docker = require('dockerode');
+const axios = require('axios');
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -18,6 +19,12 @@ const redisUrl = process.env.REDIS_URL || 'redis://redis:6379';
 
 // Docker client для получения списка контейнеров (только в среде, где есть docker.sock)
 const docker = new Docker({ socketPath: '/var/run/docker.sock' });
+
+// Настройки для запуска GitHub Actions workflow из backend
+const ghOwner = process.env.GH_OWNER;
+const ghRepo = process.env.GH_REPO;
+const ghWorkflowId = process.env.GH_WORKFLOW_ID; // например, ci-cd.yml
+const ghToken = process.env.GH_TOKEN; // персональный токен или fine-grained token
 
 app.get('/api/status', async (req, res) => {
   const status = {
@@ -81,6 +88,44 @@ app.get('/api/containers', async (req, res) => {
     res.json({ containers: simplified });
   } catch (err) {
     res.status(500).json({ error: 'Не удалось получить список контейнеров', details: err.message });
+  }
+});
+
+// Запуск CI/CD workflow GitHub Actions с сайта
+// Требует настроенных переменных окружения GH_OWNER, GH_REPO, GH_WORKFLOW_ID, GH_TOKEN
+app.post('/api/deploy', async (req, res) => {
+  if (!ghOwner || !ghRepo || !ghWorkflowId || !ghToken) {
+    return res.status(500).json({
+      error: 'CI/CD не настроен',
+      details: 'Задайте переменные окружения GH_OWNER, GH_REPO, GH_WORKFLOW_ID и GH_TOKEN'
+    });
+  }
+
+  const url = `https://api.github.com/repos/${ghOwner}/${ghRepo}/actions/workflows/${ghWorkflowId}/dispatches`;
+
+  try {
+    const response = await axios.post(
+      url,
+      { ref: 'main' },
+      {
+        headers: {
+          Authorization: `Bearer ${ghToken}`,
+          'Accept': 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+          'User-Agent': 'dev-env-backend'
+        }
+      }
+    );
+
+    res.json({
+      message: 'CI/CD workflow успешно запущен',
+      status: response.status
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: 'Не удалось запустить CI/CD workflow',
+      details: err.response ? err.response.data : err.message
+    });
   }
 });
 
