@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - name: backend
-          image: dev-env-backend:latest
-          imagePullPolicy: IfNotPresent
+          image: ghcr.io/hugywugy43/dev-env-backend:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:

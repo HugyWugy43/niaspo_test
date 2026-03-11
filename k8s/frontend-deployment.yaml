@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: dev-env-frontend:latest
-          imagePullPolicy: IfNotPresent
+          image: ghcr.io/hugywugy43/dev-env-frontend:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
 ---
