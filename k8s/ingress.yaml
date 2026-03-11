@@ -4,20 +4,23 @@ metadata:
   name: dev-env-ingress
   namespace: dev-env
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    # Подсказываем ALB Ingress Controller, что этот Ingress нужно обрабатывать ему
+    kubernetes.io/ingress.class: yc-alb-ingress-controller
 spec:
+  # Для новых контроллеров (если IngressClass создан) тоже можно указать класс
+  ingressClassName: yc-alb-ingress-controller
   rules:
     - host: dev-env.local
       http:
         paths:
-          - path: /(.*)
+          - path: /
             pathType: Prefix
             backend:
               service:
                 name: frontend
                 port:
                   number: 80
-          - path: /api(/|$)(.*)
+          - path: /api
             pathType: Prefix
             backend:
               service:
