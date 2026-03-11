@@ -10,6 +10,58 @@ const K8S_NAMESPACE = process.env.K8S_NAMESPACE || 'dev-env';
 
 app.use(express.json());
 
+// OpenAPI 3.0 spec для Swagger UI (администрирование API)
+const openApiSpec = {
+  openapi: '3.0.0',
+  info: { title: 'Dev Env API', version: '1.0.0', description: 'API тестовой среды разработчика' },
+  servers: [{ url: '/', description: 'Текущий хост (через proxy)' }],
+  paths: {
+    '/api/status': {
+      get: {
+        summary: 'Статус сервисов',
+        description: 'Проверка backend, PostgreSQL и Redis',
+        responses: { 200: { description: 'OK', content: { 'application/json': { schema: { type: 'object' } } } } }
+      }
+    },
+    '/api/hello': {
+      get: {
+        summary: 'Проверка связи с backend',
+        responses: { 200: { description: 'OK', content: { 'application/json': { schema: { type: 'object' } } } } }
+      }
+    },
+    '/api/notes': {
+      get: {
+        summary: 'Список заметок',
+        responses: { 200: { description: 'OK', content: { 'application/json': { schema: { type: 'object', properties: { notes: { type: 'array' } } } } } } }
+      },
+      post: {
+        summary: 'Создать заметку',
+        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['text'], properties: { text: { type: 'string', maxLength: 200 } } } } } },
+        responses: { 201: { description: 'Создано' }, 400: { description: 'Ошибка валидации' } }
+      }
+    },
+    '/api/containers': {
+      get: {
+        summary: 'Список контейнеров Docker',
+        description: 'Работает только при доступе backend к docker.sock (Compose/Swarm)',
+        parameters: [{ name: 'projectOnly', in: 'query', schema: { type: 'string', enum: ['true', 'false'] } }],
+        responses: { 200: { description: 'OK' } }
+      }
+    },
+    '/api/deploy': {
+      post: {
+        summary: 'Запуск CI/CD workflow',
+        description: 'Требует GH_OWNER, GH_REPO, GH_WORKFLOW_ID, GH_TOKEN',
+        responses: { 200: { description: 'Workflow запущен' }, 500: { description: 'Ошибка или не настроен' } }
+      }
+    }
+  }
+};
+
+app.get('/api-docs.json', (req, res) => {
+  res.json(openApiSpec);
+});
+
 const pgConfig = {
   host: process.env.POSTGRES_HOST || 'db',
   port: process.env.POSTGRES_PORT || 5432,

@@ -1,38 +1,38 @@
-# Инфраструктура тестовой среды разработчика (Docker, Swarm, Kubernetes, CI/CD)
+# Инфраструктура тестовой среды разработчика
 
-## Стек
+Курсовая работа: автоматическое развёртывание тестовых сред. Стек: Docker, Docker Compose, Docker Swarm, Kubernetes, GitHub Actions.
 
-- Docker, Dockerfile
-- Docker Compose (`docker-compose.yml`)
-- Docker Swarm (кластерная архитектура на базе того же compose-файла)
-- Kubernetes (манифесты в каталоге `k8s/`)
-- Backend: Node.js + Express (`backend/`)
-- Frontend: статический HTML/JS/CSS (`frontend/`)
-- PostgreSQL, Redis
-- Proxy: Nginx (`proxy/`)
-- CI/CD: GitHub Actions (`.github/workflows/ci-cd.yml`)
+**Состав:** backend (Node.js + Express), frontend (статический сайт), PostgreSQL, Redis, Nginx-прокси, **Swagger UI** (документация API), **Adminer** (просмотр БД). Манифесты K8s в `k8s/`, CI/CD в `.github/workflows/ci-cd.yml`.
 
-## Локальный запуск через Docker Compose
+---
+
+## Запуск
+
+### Docker Compose (локально)
 
 ```bash
 docker compose up --build
 ```
 
-После запуска:
-- открыть `http://localhost` — статический фронтенд,
-- блок «Статус сервисов» — кнопка «Обновить» обращается к `/api/status`,
-- блок «Проверка backend» — кнопка «Запрос» обращается к `/api/hello`,
-- основной блок «Заметки» — добавление и просмотр заметок через `/api/notes`.
+Сайт: **http://localhost**. Администрирование: **http://localhost/swagger/** — документация API (Swagger UI), **http://localhost/adminer/** — веб-интерфейс БД (логин: PostgreSQL, сервер `db`, пользователь `devuser`, пароль `devpass`, БД `devdb`).
 
-## Swarm (кластер)
+### Docker Swarm
+
+Образы при `stack deploy` не собираются — сначала соберите их.
 
 ```bash
+docker compose build
 docker swarm init
 docker stack deploy -c docker-compose.yml dev-env
-docker stack services dev-env
 ```
 
-## Kubernetes (minikube / kind)
+Проверка: `docker stack services dev-env`. Сайт: **http://localhost**.
+
+При ошибке адреса: `docker swarm init --advertise-addr 127.0.0.1`.
+
+Удаление: `docker stack rm dev-env`, затем `docker swarm leave --force`.
+
+### Kubernetes
 
 ```bash
 kubectl apply -f k8s/namespace.yaml
@@ -43,67 +43,55 @@ kubectl apply -f k8s/frontend-deployment.yaml
 kubectl apply -f k8s/ingress.yaml
 ```
 
-Далее в hosts можно прописать `dev-env.local` и настроить ingress-контроллер.
+Доступ — через LoadBalancer/Ingress по вашей конфигурации кластера.
 
-## CI/CD и тесты (GitHub Actions)
+---
 
-### Где смотреть статус тестов
+## Просмотр базы данных
 
-1. **Репозиторий на GitHub** → вкладка **Actions**.
-2. Выберите workflow **«CI/CD Dev Env»** и последний запуск (по коммиту или PR).
-3. Внутри запуска:
-   - Job **«build-and-push»** — здесь выполняются тесты. Раскройте шаг **«Backend tests»**: в логе будет вывод `npm test` (Jest). Если тесты упали, весь job помечается как failed и деплой не запускается.
-   - Job **«deploy»** — применяет манифесты в кластер и перезапускает backend/frontend.
+БД не скрыта: к ней можно подключиться с теми же учётными данными, что и backend (**devuser** / **devpass**, база **devdb**). В приложении просто нет экрана «админки» для таблиц — это обычная изоляция по ролям (пользователь сайта не видит БД, а тот, у кого есть доступ к среде, может).
 
-Итог: **зелёная галочка** у запуска — тесты прошли и (при push в `main`) деплой выполнен. **Красный крестик** — смотреть лог шага «Backend tests» в job «build-and-push».
+**Docker Compose** (порт 5432 наружу не проброшен — подключаемся из контейнера):
 
-### Как устроен `.github/workflows/ci-cd.yml`
+```bash
+docker compose exec db psql -U devuser -d devdb -c "\dt"
+```
 
-- **Триггеры**: запуск при `push` и при `pull_request` в ветку `main`.
-- **Переменные**: образы пушатся в `ghcr.io` (REGISTRY), имена образов заданы в `env` (IMAGE_BACKEND, IMAGE_FRONTEND, IMAGE_PROXY), тег — `latest`.
-- **Job `build-and-push`** (один runner):
-  1. Checkout кода.
-  2. Установка Node.js 20.
-  3. `npm install` в `backend/`.
-  4. **`npm test`** в `backend/` — запуск Jest; при падении тестов пайплайн останавливается.
-  5. Логин в GitHub Container Registry по `GITHUB_TOKEN`.
-  6. Сборка и пуш трёх Docker-образов: backend, frontend, proxy.
-- **Job `deploy`** (зависит от `build-and-push`, только при успехе):
-  1. Использует **environment: testing** (при необходимости можно добавить approval).
-  2. Восстанавливает kubeconfig из секрета `KUBE_CONFIG_B64`.
-  3. Применяет манифесты из `k8s/` (namespace, db, redis, backend, frontend, ingress).
-  4. Делает `kubectl rollout restart` для backend и frontend, чтобы поды подхватили новые образы.
+Список таблиц: `\dt`. SQL: `SELECT * FROM ...` и т.д. Интерактивная консоль: `docker compose exec -it db psql -U devuser -d devdb`.
 
-При **pull_request** деплой тоже запускается (если есть секрет и environment), но образы уже запушены на предыдущем шаге; при необходимости деплой для PR можно отключить или ограничить.
+**Kubernetes** (под в том же namespace, что и backend):
 
-## Секрет KUBE_CONFIG_B64 для GitHub Actions
+```bash
+kubectl exec -it deployment/backend -n dev-env -- sh
+# внутри пода нет psql; либо поставить клиент, либо запустить временный под с postgres-образом:
+kubectl run -it --rm psql-client --image=postgres:16-alpine -n dev-env --env="PGPASSWORD=devpass" -- psql -h db -U devuser -d devdb -c "\dt"
+```
 
-Чтобы job `deploy` подключался к кластеру, в репозитории нужен секрет `KUBE_CONFIG_B64`.
+На хосте с установленным **psql** можно смотреть БД и через порт, если его пробросить. В `docker-compose.yml` у сервиса `db` портов на хост нет — при необходимости добавьте `ports: ["5432:5432"]` и подключайтесь: `psql -h localhost -U devuser -d devdb` (пароль: devpass).
 
-### Если кластер использует exec (Yandex Cloud `yc`, AWS `aws`, GCP `gcloud` и т.п.)
+---
 
-Стандартный kubeconfig вызывает локальную утилиту (`yc.exe` и т.д.). В GitHub Actions её нет, поэтому нужен **статический** kubeconfig с токеном.
+## CI/CD (GitHub Actions)
 
-1. На ПК, где уже есть доступ к кластеру (`kubectl` работает), выполни:
-   ```powershell
-   cd C:\Users\Admin\niaspo
-   .\scripts\create-static-kubeconfig.ps1
-   ```
-   Скрипт создаёт ServiceAccount в кластере (файл `k8s/sa-for-ci.yaml`), достаёт токен и сохраняет статический kubeconfig в `static-kubeconfig.yaml`.
+Workflow **«CI/CD Dev Env»** запускается при push и PR в `main`.
 
-2. Закодируй файл в base64 и добавь в GitHub:
-   ```powershell
-   [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes((Get-Content -Path ".\static-kubeconfig.yaml" -Raw)))
-   ```
-   GitHub → Settings → Secrets and variables → Actions → New repository secret → Name: `KUBE_CONFIG_B64`, Value: вставь строку.
+- **Actions** → выбранный run → job **build-and-push**: шаг **Backend tests** — там вывод `npm test` (Jest). При падении тестов деплой не выполняется.
+- Job **deploy** применяет манифесты в кластер и перезапускает backend/frontend (нужен секрет `KUBE_CONFIG_B64`).
 
-### Если кластер уже отдаёт kubeconfig с токеном/сертификатом (без exec)
+### Секрет KUBE_CONFIG_B64
 
-Можно кодировать обычный `~/.kube/config`:
+Для деплоя в K8s в репозитории нужен секрет **KUBE_CONFIG_B64** — base64 от kubeconfig.
+
+**Кластер с exec (Yandex Cloud и т.п.):** на ПК с рабочим `kubectl` выполните `.\scripts\create-static-kubeconfig.ps1`, затем закодируйте `static-kubeconfig.yaml`:
+
+```powershell
+[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes((Get-Content -Path ".\static-kubeconfig.yaml" -Raw)))
+```
+
+**Обычный kubeconfig (без exec):**
 
 ```powershell
 [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes((Get-Content -Path "$env:USERPROFILE\.kube\config" -Raw)))
 ```
 
-Скопируй вывод целиком → GitHub → Settings → Secrets and variables → Actions → New repository secret → Name: `KUBE_CONFIG_B64`, Value: вставь строку.
-
+Скопировать вывод → GitHub → Settings → Secrets and variables → Actions → New repository secret → Name: `KUBE_CONFIG_B64`, Value: вставленная строка.

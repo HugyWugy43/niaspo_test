@@ -24,6 +24,20 @@ body {
   color: #9ca3af;
 }
 
+.header .admin-links {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.header .admin-links a {
+  color: #93c5fd;
+  text-decoration: none;
+}
+
+.header .admin-links a:hover {
+  text-decoration: underline;
+}
+
 .container {
   max-width: 1200px;
   margin: 2rem auto;
