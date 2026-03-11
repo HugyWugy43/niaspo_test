@@ -101,13 +101,39 @@ button.secondary:hover {
   margin-bottom: 0.75rem;
 }
 
-.logs-controls label { margin-right: 0.25rem; }
-.logs-controls select, .logs-controls input { padding: 0.35rem 0.5rem; border-radius: 0.35rem; background: #0f172a; border: 1px solid #334155; color: #e2e8f0; }
 .logs-output {
   max-height: 400px;
   overflow-y: auto;
   white-space: pre-wrap;
   word-break: break-all;
+}
+
+.notes-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.notes-controls input {
+  flex: 1 1 200px;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.35rem;
+  border: 1px solid #334155;
+  background: #020617;
+  color: #e5e7eb;
+}
+
+.notes-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.notes-list li {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #1f2937;
+  font-size: 0.9rem;
 }
 
 .footer {

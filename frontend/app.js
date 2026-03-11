@@ -1,5 +1,5 @@
-async function fetchJson(url) {
-  const resp = await fetch(url);
+async function fetchJson(url, options) {
+  const resp = await fetch(url, options);
   if (!resp.ok) {
     throw new Error(`HTTP ${resp.status}`);
   }
@@ -49,9 +49,56 @@ document.getElementById('helloBtn').addEventListener('click', async () => {
   }
 });
 
+async function loadNotes() {
+  const list = document.getElementById('notesList');
+  const errBox = document.getElementById('notesError');
+  list.innerHTML = '';
+  errBox.textContent = '';
+  try {
+    const data = await fetchJson('/api/notes');
+    if (!Array.isArray(data.notes) || data.notes.length === 0) {
+      list.innerHTML = '<li>Заметок пока нет.</li>';
+      return;
+    }
+    data.notes.slice().reverse().forEach(note => {
+      const li = document.createElement('li');
+      li.innerHTML = `<strong>${note.text}</strong><br/><span>${note.createdAt}</span>`;
+      list.appendChild(li);
+    });
+  } catch (err) {
+    errBox.textContent = 'Ошибка загрузки заметок: ' + err.message;
+  }
+}
+
+document.getElementById('addNoteBtn').addEventListener('click', async () => {
+  const input = document.getElementById('noteText');
+  const errBox = document.getElementById('notesError');
+  const text = input.value.trim();
+  errBox.textContent = '';
+  if (!text) {
+    errBox.textContent = 'Введите текст заметки.';
+    return;
+  }
+  if (text.length > 200) {
+    errBox.textContent = 'Текст не должен превышать 200 символов.';
+    return;
+  }
+  try {
+    const data = await fetchJson('/api/notes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    input.value = '';
+    await loadNotes();
+  } catch (err) {
+    errBox.textContent = 'Ошибка: ' + err.message;
+  }
+});
+
 function renderContainers(listDiv, data, showAll) {
   if (!data.containers || data.containers.length === 0) {
-    listDiv.textContent = showAll ? 'Контейнеры не найдены.' : 'Контейнеры проекта не найдены. Запустите docker compose up.';
+    listDiv.textContent = showAll ? 'Контейнеры не найдены.' : 'Контейнеры проекта не найдены.';
     return;
   }
   const title = document.createElement('p');
@@ -80,7 +127,7 @@ document.getElementById('containersBtn').addEventListener('click', async () => {
     const data = await fetchJson('/api/containers');
     renderContainers(listDiv, data, false);
   } catch (err) {
-    listDiv.textContent = 'Ошибка: ' + err.message + '. Убедитесь, что backend имеет доступ к docker.sock.';
+    listDiv.textContent = 'Ошибка: ' + err.message;
   }
 });
 
@@ -95,29 +142,6 @@ document.getElementById('containersAllBtn').addEventListener('click', async () =
   }
 });
 
-document.getElementById('logsBtn').addEventListener('click', async () => {
-  const out = document.getElementById('logsOutput');
-  out.textContent = 'Загрузка...';
-  const deployment = document.getElementById('logsDeployment').value;
-  const tail = document.getElementById('logsTail').value || 100;
-  try {
-    const data = await fetchJson(`/api/k8s/logs?deployment=${encodeURIComponent(deployment)}&tail=${encodeURIComponent(tail)}`);
-    if (!data.available) {
-      out.textContent = data.message || 'Логи недоступны.';
-      return;
-    }
-    if (data.error) {
-      out.textContent = 'Ошибка: ' + data.error;
-      return;
-    }
-    if (data.message && !data.logs) {
-      out.textContent = data.message;
-      return;
-    }
-    const header = data.pod ? `Pod: ${data.pod}\n\n` : '';
-    out.textContent = header + (data.logs || '(пусто)');
-  } catch (err) {
-    out.textContent = 'Ошибка: ' + err.message;
-  }
-});
+// начальная загрузка заметок при открытии страницы
+loadNotes();
 

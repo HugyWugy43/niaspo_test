@@ -4,7 +4,8 @@
   "description": "Простой backend для демонстрации контейнерной инфраструктуры и тестовых сред",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "jest"
   },
   "dependencies": {
     "express": "^4.19.2",
@@ -13,5 +14,12 @@
     "dockerode": "^4.0.2",
     "axios": "^1.7.2",
     "@kubernetes/client-node": "^0.20.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.4"
+  },
+  "jest": {
+    "testEnvironment": "node"
   }
 }
