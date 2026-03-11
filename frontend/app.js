@@ -97,6 +97,10 @@ document.getElementById('addNoteBtn').addEventListener('click', async () => {
 });
 
 function renderContainers(listDiv, data, showAll) {
+  if (data.message && (!data.containers || data.containers.length === 0)) {
+    listDiv.textContent = data.message;
+    return;
+  }
   if (!data.containers || data.containers.length === 0) {
     listDiv.textContent = showAll ? 'Контейнеры не найдены.' : 'Контейнеры проекта не найдены.';
     return;

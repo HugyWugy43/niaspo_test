@@ -132,7 +132,14 @@ app.get('/api/containers', async (req, res) => {
     }));
     res.json({ containers: simplified });
   } catch (err) {
-    res.status(500).json({ error: 'Не удалось получить список контейнеров', details: err.message });
+    // В Kubernetes-кластере docker.sock обычно недоступен, поэтому возвращаем
+    // мягкую ошибку, чтобы фронтенд мог показать понятное сообщение.
+    const msg = 'Список контейнеров Docker доступен только в среде, где backend имеет доступ к /var/run/docker.sock (локальный Docker / Compose / Swarm).';
+    res.status(200).json({
+      containers: [],
+      message: msg,
+      error: err.message
+    });
   }
 });
 
