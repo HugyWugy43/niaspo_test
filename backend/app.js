@@ -58,9 +58,8 @@ const openApiSpec = {
   }
 };
 
-app.get('/api-docs.json', (req, res) => {
-  res.json(openApiSpec);
-});
+app.get('/api-docs.json', (req, res) => res.json(openApiSpec));
+app.get('/api/api-docs', (req, res) => res.json(openApiSpec));
 
 const pgConfig = {
   host: process.env.POSTGRES_HOST || 'db',

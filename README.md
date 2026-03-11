@@ -2,7 +2,7 @@
 
 Курсовая работа: автоматическое развёртывание тестовых сред. Стек: Docker, Docker Compose, Docker Swarm, Kubernetes, GitHub Actions.
 
-**Состав:** backend (Node.js + Express), frontend (статический сайт), PostgreSQL, Redis, Nginx-прокси, **Swagger UI** (документация API), **Adminer** (просмотр БД). Манифесты K8s в `k8s/`, CI/CD в `.github/workflows/ci-cd.yml`.
+**Состав:** backend (Node.js + Express), frontend (статический сайт), PostgreSQL, Redis, Nginx-прокси. Список API отображается на главной странице (блок «Документация API»). Манифесты K8s в `k8s/`, CI/CD в `.github/workflows/ci-cd.yml`.
 
 ---
 
@@ -14,7 +14,7 @@
 docker compose up --build
 ```
 
-Сайт: **http://localhost**. Администрирование: **http://localhost/swagger/** — документация API (Swagger UI), **http://localhost/adminer/** — веб-интерфейс БД (логин: PostgreSQL, сервер `db`, пользователь `devuser`, пароль `devpass`, БД `devdb`).
+Сайт: **http://localhost** (статус, проверка backend, заметки, список API в блоке «Документация API»).
 
 ### Docker Swarm
 

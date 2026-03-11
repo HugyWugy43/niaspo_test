@@ -9,24 +9,6 @@ services:
     depends_on:
       - frontend
       - backend
-      - swagger
-      - adminer
-    networks:
-      - app-net
-
-  swagger:
-    image: swaggerapi/swagger-ui:latest
-    environment:
-      BASE_URL: /swagger/
-      SPEC_URL: /api-docs.json
-    networks:
-      - app-net
-
-  adminer:
-    image: adminer:latest
-    environment:
-      ADMINER_DEFAULT_SERVER: db
-      ADMINER_DESIGN: pepa-linha
     networks:
       - app-net
 

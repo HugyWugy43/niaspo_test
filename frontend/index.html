@@ -9,7 +9,6 @@
   <body>
     <header class="header">
       <h1>Тестовая среда разработчика</h1>
-      <p class="admin-links">Администрирование: <a href="/swagger/" target="_blank" rel="noopener">Swagger (API)</a> · <a href="/adminer/" target="_blank" rel="noopener">Adminer (БД)</a></p>
     </header>
 
     <main class="container">
@@ -23,6 +22,10 @@
           <h2>Проверка backend</h2>
           <button id="helloBtn">Запрос</button>
           <pre id="helloResult" class="code code-compact"></pre>
+        </section>
+        <section class="panel panel-compact">
+          <h2>Документация API</h2>
+          <div id="apiDocsList" class="api-docs-list"></div>
         </section>
       </aside>
 

@@ -24,18 +24,38 @@ body {
   color: #9ca3af;
 }
 
-.header .admin-links {
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
+.api-docs-list {
+  font-size: 0.8rem;
+  line-height: 1.5;
 }
 
-.header .admin-links a {
+.api-docs-item {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid #1f2937;
+}
+
+.api-method {
+  display: inline-block;
+  min-width: 2.5rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+  font-weight: 600;
+  font-size: 0.7rem;
+}
+
+.api-method--get {
+  background: #22c55e;
+  color: #0f172a;
+}
+
+.api-method--post {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.api-path {
   color: #93c5fd;
-  text-decoration: none;
-}
-
-.header .admin-links a:hover {
-  text-decoration: underline;
+  font-family: ui-monospace, monospace;
 }
 
 .container {
