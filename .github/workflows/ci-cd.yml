@@ -48,6 +48,7 @@ jobs:
         with:
           context: ./backend
           push: true
+          provenance: false
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_BACKEND }}:${{ env.IMAGE_TAG }}
 
@@ -56,6 +57,7 @@ jobs:
         with:
           context: ./frontend
           push: true
+          provenance: false
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_FRONTEND }}:${{ env.IMAGE_TAG }}
 
@@ -64,6 +66,7 @@ jobs:
         with:
           context: ./proxy
           push: true
+          provenance: false
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_PROXY }}:${{ env.IMAGE_TAG }}
 
