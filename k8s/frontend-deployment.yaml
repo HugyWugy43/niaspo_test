@@ -26,6 +26,7 @@ metadata:
   name: frontend
   namespace: dev-env
 spec:
+  type: LoadBalancer
   selector:
     app: frontend
   ports:
