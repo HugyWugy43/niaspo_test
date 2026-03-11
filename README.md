@@ -20,8 +20,9 @@ docker compose up --build
 
 После запуска:
 - открыть `http://localhost` — статический фронтенд,
-- кнопка «Обновить статус» обращается к `/api/status`,
-- кнопка «Отправить запрос» обращается к `/api/hello`.
+- блок «Статус сервисов» — кнопка «Обновить» обращается к `/api/status`,
+- блок «Проверка backend» — кнопка «Запрос» обращается к `/api/hello`,
+- основной блок «Заметки» — добавление и просмотр заметок через `/api/notes`.
 
 ## Swarm (кластер)
 
@@ -43,6 +44,37 @@ kubectl apply -f k8s/ingress.yaml
 ```
 
 Далее в hosts можно прописать `dev-env.local` и настроить ingress-контроллер.
+
+## CI/CD и тесты (GitHub Actions)
+
+### Где смотреть статус тестов
+
+1. **Репозиторий на GitHub** → вкладка **Actions**.
+2. Выберите workflow **«CI/CD Dev Env»** и последний запуск (по коммиту или PR).
+3. Внутри запуска:
+   - Job **«build-and-push»** — здесь выполняются тесты. Раскройте шаг **«Backend tests»**: в логе будет вывод `npm test` (Jest). Если тесты упали, весь job помечается как failed и деплой не запускается.
+   - Job **«deploy»** — применяет манифесты в кластер и перезапускает backend/frontend.
+
+Итог: **зелёная галочка** у запуска — тесты прошли и (при push в `main`) деплой выполнен. **Красный крестик** — смотреть лог шага «Backend tests» в job «build-and-push».
+
+### Как устроен `.github/workflows/ci-cd.yml`
+
+- **Триггеры**: запуск при `push` и при `pull_request` в ветку `main`.
+- **Переменные**: образы пушатся в `ghcr.io` (REGISTRY), имена образов заданы в `env` (IMAGE_BACKEND, IMAGE_FRONTEND, IMAGE_PROXY), тег — `latest`.
+- **Job `build-and-push`** (один runner):
+  1. Checkout кода.
+  2. Установка Node.js 20.
+  3. `npm install` в `backend/`.
+  4. **`npm test`** в `backend/` — запуск Jest; при падении тестов пайплайн останавливается.
+  5. Логин в GitHub Container Registry по `GITHUB_TOKEN`.
+  6. Сборка и пуш трёх Docker-образов: backend, frontend, proxy.
+- **Job `deploy`** (зависит от `build-and-push`, только при успехе):
+  1. Использует **environment: testing** (при необходимости можно добавить approval).
+  2. Восстанавливает kubeconfig из секрета `KUBE_CONFIG_B64`.
+  3. Применяет манифесты из `k8s/` (namespace, db, redis, backend, frontend, ingress).
+  4. Делает `kubectl rollout restart` для backend и frontend, чтобы поды подхватили новые образы.
+
+При **pull_request** деплой тоже запускается (если есть секрет и environment), но образы уже запушены на предыдущем шаге; при необходимости деплой для PR можно отключить или ограничить.
 
 ## Секрет KUBE_CONFIG_B64 для GitHub Actions
 

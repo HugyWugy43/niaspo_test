@@ -13,35 +13,28 @@
     </header>
 
     <main class="container">
-      <section class="panel">
-        <h2>Статус сервисов</h2>
-        <button id="refreshBtn">Обновить статус</button>
-        <div id="status" class="status"></div>
-      </section>
+      <aside class="aside-panels">
+        <section class="panel panel-compact">
+          <h2>Статус сервисов</h2>
+          <button id="refreshBtn">Обновить</button>
+          <div id="status" class="status status-compact"></div>
+        </section>
+        <section class="panel panel-compact">
+          <h2>Проверка backend</h2>
+          <button id="helloBtn">Запрос</button>
+          <pre id="helloResult" class="code code-compact"></pre>
+        </section>
+      </aside>
 
-      <section class="panel">
-        <h2>Проверка связи с backend</h2>
-        <button id="helloBtn">Отправить запрос</button>
-        <pre id="helloResult" class="code"></pre>
-      </section>
-
-      <section class="panel">
-        <h2>Мини‑фича: заметки</h2>
-        <p class="hint">Небольшой список заметок хранится на backend-е (in-memory). На нём показаны unit‑тесты.</p>
+      <section class="panel panel-notes">
+        <h2>Заметки</h2>
+        <p class="notes-desc">Список заметок хранится на backend (in-memory). Эту фичу покрывают unit-тесты в CI.</p>
         <div class="notes-controls">
           <input id="noteText" type="text" placeholder="Текст заметки (до 200 символов)" />
           <button id="addNoteBtn">Добавить заметку</button>
         </div>
-        <div id="notesError" class="status"></div>
+        <div id="notesError" class="notes-error"></div>
         <ul id="notesList" class="notes-list"></ul>
-      </section>
-
-      <section class="panel">
-        <h2>Развёрнутые контейнеры Docker</h2>
-        <p class="hint">По умолчанию — только контейнеры этой тестовой среды (одна сеть с backend).</p>
-        <button id="containersBtn">Показать контейнеры проекта</button>
-        <button id="containersAllBtn" type="button" class="secondary">Показать все контейнеры хоста</button>
-        <div id="containersList" class="status"></div>
       </section>
     </main>
 
