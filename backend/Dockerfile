@@ -2,8 +2,9 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Сначала копируем только файлы зависимостей и устанавливаем их в образе
 COPY package.json package-lock.json* ./
-RUN npm install --production
+RUN npm install
 
 COPY . ./
 
