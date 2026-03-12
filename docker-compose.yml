@@ -9,6 +9,17 @@ services:
     depends_on:
       - frontend
       - backend
+      - pgadmin
+    networks:
+      - app-net
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@localhost
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: "True"
+      PGADMIN_CONFIG_SCRIPT_NAME: /pgadmin
     networks:
       - app-net
 
