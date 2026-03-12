@@ -23,6 +23,8 @@ spec:
               value: admin
             - name: PGADMIN_CONFIG_SERVER_MODE
               value: "True"
+            - name: PGADMIN_CONFIG_SCRIPT_NAME
+              value: /pgadmin
             - name: PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED
               value: "False"
           ports:
@@ -34,10 +36,10 @@ metadata:
   name: pgadmin
   namespace: dev-env
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: pgadmin
   ports:
     - name: http
-      port: 5050
+      port: 80
       targetPort: 80

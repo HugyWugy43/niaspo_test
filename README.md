@@ -117,7 +117,7 @@ kubectl run -it --rm psql-client --image=postgres:16-alpine -n dev-env --env="PG
 
 Есть два способа пользоваться pgAdmin, когда приложение уже в кластере (например, Yandex Cloud).
 
-### Способ 1: pgAdmin в кластере (веб-интерфейс по отдельному адресу)
+### Способ 1: pgAdmin по тому же адресу, что и фронтенд (через проксирование)
 
 Разверните pgAdmin в том же namespace, что и БД:
 
@@ -125,18 +125,14 @@ kubectl run -it --rm psql-client --image=postgres:16-alpine -n dev-env --env="PG
 kubectl apply -f k8s/pgadmin-deployment.yaml
 ```
 
-Дождитесь появления внешнего IP у сервиса pgadmin:
+pgAdmin в кластере доступен как внутренний сервис `pgadmin` (ClusterIP) и открывается **через тот же внешний IP/домен, что и фронтенд**, по пути **`/pgadmin/`**:
 
-```bash
-kubectl get svc pgadmin -n dev-env
-```
-
-В колонке **EXTERNAL-IP** будет адрес (иногда он выставляется через 1–2 минуты). Откройте в браузере: **http://&lt;EXTERNAL-IP&gt;:5050**.
+- открыть: **http://<EXTERNAL-IP фронтенда>/pgadmin/** (например: `http://158.160.189.212/pgadmin/`)
 
 - **Вход в pgAdmin:** Email `admin@localhost`, пароль `admin`.
 - **Добавить сервер PostgreSQL:** в pgAdmin — Add New Server. На вкладке **Connection**: Host — **`db`** (имя сервиса в кластере), Port — **5432**, Username — **devuser**, Password — **devpass**, Database — **devdb**. Сохранить.
 
-Так как pgAdmin работает внутри кластера, он обращается к БД по внутреннему имени сервиса `db`. В облаке убедитесь, что в группе безопасности разрешён входящий трафик на порт 80 для сервиса pgAdmin (если используется отдельный LoadBalancer).
+Так как pgAdmin работает внутри кластера, он обращается к БД по внутреннему имени сервиса `db`.
 
 ## Adminer при развёртывании в облачном кластере Kubernetes
 
