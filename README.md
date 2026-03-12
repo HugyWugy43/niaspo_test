@@ -54,7 +54,7 @@
 docker compose up --build
 ```
 
-Сайт: **http://localhost** (статус, проверка backend, заметки, список API). **pgAdmin:** http://localhost/pgadmin/ (логин: `admin@localhost`, пароль: `admin`; для подключения к БД: хост `db`, пользователь `devuser`, пароль `devpass`, БД `devdb`).
+Сайт: **http://localhost** (статус, проверка backend, заметки, список API). **pgAdmin:** http://localhost:5050 (логин: `admin@localhost`, пароль: `admin`; хост БД: `db`, пользователь `devuser`, пароль `devpass`, БД `devdb`). После запуска контейнера подождите 1–2 минуты перед открытием. **Если интерфейс pgAdmin не открывается** — используйте **Adminer:** http://localhost:8080 (система: PostgreSQL, сервер: `db`, пользователь: `devuser`, пароль: `devpass`, БД: `devdb`).
 
 ### Docker Swarm
 
@@ -144,12 +144,12 @@ kubectl get svc pgadmin -n dev-env
 1. На машине, где настроен `kubectl` и доступ к кластеру, выполните:
 
 ```bash
-kubectl port-forward svc/db -n dev-env 5432:5432
+kubectl port-forward svc/db -n dev-env 5433:5432
 ```
 
-Оставьте команду работающей (туннель активен, пока процесс не завершён).
+(Локальный порт **5433** используется, чтобы не конфликтовать с уже занятым 5432, например локальным PostgreSQL.) Оставьте команду работающей (туннель активен, пока процесс не завершён).
 
-2. На этом же компьютере откройте pgAdmin (локально или в Docker). Добавьте сервер: **Host** — `localhost` (или `127.0.0.1`), **Port** — `5432`, **Username** — `devuser`, **Password** — `devpass`, **Database** — `devdb`.
+2. На этом же компьютере откройте pgAdmin (локально или в Docker). Добавьте сервер: **Host** — `localhost` (или `127.0.0.1`), **Port** — **5433**, **Username** — `devuser`, **Password** — `devpass`, **Database** — `devdb`.
 
 3. Подключитесь — трафик идёт через туннель в кластер к сервису `db`.
 

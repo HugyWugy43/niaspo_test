@@ -96,40 +96,5 @@ document.getElementById('addNoteBtn').addEventListener('click', async () => {
   }
 });
 
-// Список API из OpenAPI-спеки (на той же странице, без отдельной кнопки)
-async function loadApiDocs() {
-  const el = document.getElementById('apiDocsList');
-  el.textContent = 'Загрузка...';
-  try {
-    const spec = await fetchJson('/api/api-docs');
-    el.innerHTML = '';
-    if (!spec.paths || typeof spec.paths !== 'object') {
-      el.textContent = 'Нет данных.';
-      return;
-    }
-    const frag = document.createDocumentFragment();
-    for (const [path, methods] of Object.entries(spec.paths)) {
-      for (const [method, info] of Object.entries(methods)) {
-        if (method.startsWith('/') || !info || typeof info !== 'object') continue;
-        const summary = (info.summary || method).trim();
-        const div = document.createElement('div');
-        div.className = 'api-docs-item';
-        const methodClass = 'api-method api-method--' + method.toLowerCase();
-        div.innerHTML = `<span class="${methodClass}">${method.toUpperCase()}</span> <span class="api-path">${path}</span> — ${escapeHtml(summary)}`;
-        frag.appendChild(div);
-      }
-    }
-    el.appendChild(frag);
-  } catch (err) {
-    el.textContent = 'Ошибка: ' + err.message;
-  }
-}
-function escapeHtml(s) {
-  const div = document.createElement('div');
-  div.textContent = s;
-  return div.innerHTML;
-}
-
-loadApiDocs();
 loadNotes();
 
