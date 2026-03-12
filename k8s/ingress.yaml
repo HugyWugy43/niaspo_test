@@ -27,4 +27,11 @@ spec:
                 name: backend
                 port:
                   number: 8080
+          - path: /pgadmin
+            pathType: Prefix
+            backend:
+              service:
+                name: pgadmin
+                port:
+                  number: 80
 

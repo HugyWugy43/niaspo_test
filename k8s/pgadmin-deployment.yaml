@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: pgadmin
-          image: dpage/pgadmin4:latest
+          image: dpage/pgadmin4:8
           env:
             - name: PGADMIN_DEFAULT_EMAIL
               value: admin@localhost
@@ -23,6 +23,10 @@ spec:
               value: admin
             - name: PGADMIN_CONFIG_SERVER_MODE
               value: "True"
+            - name: PGADMIN_CONFIG_SCRIPT_NAME
+              value: /pgadmin
+            - name: PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED
+              value: "False"
           ports:
             - containerPort: 80
 ---
