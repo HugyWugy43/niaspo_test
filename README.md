@@ -81,6 +81,7 @@ kubectl apply -f k8s/redis-deployment.yaml
 kubectl apply -f k8s/backend-deployment.yaml
 kubectl apply -f k8s/frontend-deployment.yaml
 kubectl apply -f k8s/pgadmin-deployment.yaml
+kubectl apply -f k8s/adminer-deployment.yaml
 kubectl apply -f k8s/ingress.yaml
 ```
 
@@ -136,6 +137,35 @@ kubectl get svc pgadmin -n dev-env
 - **Добавить сервер PostgreSQL:** в pgAdmin — Add New Server. На вкладке **Connection**: Host — **`db`** (имя сервиса в кластере), Port — **5432**, Username — **devuser**, Password — **devpass**, Database — **devdb**. Сохранить.
 
 Так как pgAdmin работает внутри кластера, он обращается к БД по внутреннему имени сервиса `db`. В облаке убедитесь, что в группе безопасности разрешён входящий трафик на порт 80 для сервиса pgAdmin (если используется отдельный LoadBalancer).
+
+## Adminer при развёртывании в облачном кластере Kubernetes
+
+Adminer — простой веб‑интерфейс для работы с PostgreSQL (легче, чем pgAdmin). В проекте он разворачивается в кластере как отдельный сервис `adminer` и публикуется через Service типа LoadBalancer на **порту 8080**.
+
+### Доступ к Adminer
+
+1. Примените манифест:
+
+```bash
+kubectl apply -f k8s/adminer-deployment.yaml
+```
+
+2. Узнайте внешний адрес:
+
+```bash
+kubectl get svc adminer -n dev-env
+```
+
+3. Откройте в браузере: **http://<EXTERNAL-IP>:8080**.
+
+4. Параметры подключения на странице входа Adminer:
+   - **Система**: PostgreSQL
+   - **Сервер**: `db`
+   - **Пользователь**: `devuser`
+   - **Пароль**: `devpass`
+   - **База данных**: `devdb`
+
+Для доступа извне проверьте, что в security group/правилах балансировщика разрешён входящий TCP на порт **8080**.
 
 ### Способ 2: Локальный pgAdmin + туннель к БД в кластере
 
