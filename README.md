@@ -80,6 +80,7 @@ kubectl apply -f k8s/db-deployment.yaml
 kubectl apply -f k8s/redis-deployment.yaml
 kubectl apply -f k8s/backend-deployment.yaml
 kubectl apply -f k8s/frontend-deployment.yaml
+kubectl apply -f k8s/pgadmin-deployment.yaml
 kubectl apply -f k8s/ingress.yaml
 ```
 
@@ -103,11 +104,56 @@ docker compose exec db psql -U devuser -d devdb -c "\dt"
 
 ```bash
 kubectl exec -it deployment/backend -n dev-env -- sh
-# внутри пода нет psql; либо поставить клиент, либо запустить временный под с postgres-образом:
+# внутри пода нет psql; либо поставить клиент, либо запустить временной под с postgres-образом:
 kubectl run -it --rm psql-client --image=postgres:16-alpine -n dev-env --env="PGPASSWORD=devpass" -- psql -h db -U devuser -d devdb -c "\dt"
 ```
 
 На хосте с установленным **psql** можно смотреть БД и через порт, если его пробросить. В `docker-compose.yml` у сервиса `db` портов на хост нет — при необходимости добавьте `ports: ["5432:5432"]` и подключайтесь: `psql -h localhost -U devuser -d devdb` (пароль: devpass).
+
+---
+
+## pgAdmin при развёртывании в облачном кластере Kubernetes
+
+Есть два способа пользоваться pgAdmin, когда приложение уже в кластере (например, Yandex Cloud).
+
+### Способ 1: pgAdmin в кластере (веб-интерфейс по отдельному адресу)
+
+Разверните pgAdmin в том же namespace, что и БД:
+
+```bash
+kubectl apply -f k8s/pgadmin-deployment.yaml
+```
+
+Дождитесь появления внешнего IP у сервиса pgadmin:
+
+```bash
+kubectl get svc pgadmin -n dev-env
+```
+
+В колонке **EXTERNAL-IP** будет адрес (иногда он выставляется через 1–2 минуты). Откройте в браузере: **http://&lt;EXTERNAL-IP&gt;** (порт 80).
+
+- **Вход в pgAdmin:** Email `admin@localhost`, пароль `admin`.
+- **Добавить сервер PostgreSQL:** в pgAdmin — Add New Server. На вкладке **Connection**: Host — **`db`** (имя сервиса в кластере), Port — **5432**, Username — **devuser**, Password — **devpass**, Database — **devdb**. Сохранить.
+
+Так как pgAdmin работает внутри кластера, он обращается к БД по внутреннему имени сервиса `db`. В облаке убедитесь, что в группе безопасности разрешён входящий трафик на порт 80 для сервиса pgAdmin (если используется отдельный LoadBalancer).
+
+### Способ 2: Локальный pgAdmin + туннель к БД в кластере
+
+Не разворачивая pgAdmin в облаке, можно пробросить порт PostgreSQL на свой компьютер и подключиться из pgAdmin, установленного локально (или из контейнера Docker с pgAdmin на вашем ПК).
+
+1. На машине, где настроен `kubectl` и доступ к кластеру, выполните:
+
+```bash
+kubectl port-forward svc/db -n dev-env 5432:5432
+```
+
+Оставьте команду работающей (туннель активен, пока процесс не завершён).
+
+2. На этом же компьютере откройте pgAdmin (локально или в Docker). Добавьте сервер: **Host** — `localhost` (или `127.0.0.1`), **Port** — `5432`, **Username** — `devuser`, **Password** — `devpass`, **Database** — `devdb`.
+
+3. Подключитесь — трафик идёт через туннель в кластер к сервису `db`.
+
+Так можно пользоваться pgAdmin на своём ПК без публикации БД в интернет. Для CI/CD в workflow при необходимости можно добавить `kubectl apply -f k8s/pgadmin-deployment.yaml`, чтобы pgAdmin тоже разворачивался в кластере при деплое.
 
 ---
 

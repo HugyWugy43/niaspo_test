@@ -95,6 +95,7 @@ jobs:
           kubectl apply -f k8s/redis-deployment.yaml
           kubectl apply -f k8s/backend-deployment.yaml
           kubectl apply -f k8s/frontend-deployment.yaml
+          kubectl apply -f k8s/pgadmin-deployment.yaml
           kubectl apply -f k8s/ingress.yaml
 
       - name: Rollout restart (pick up new images)
