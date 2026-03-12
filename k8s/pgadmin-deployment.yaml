@@ -23,8 +23,6 @@ spec:
               value: admin
             - name: PGADMIN_CONFIG_SERVER_MODE
               value: "True"
-            - name: PGADMIN_CONFIG_SCRIPT_NAME
-              value: /pgadmin
             - name: PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED
               value: "False"
           ports:
