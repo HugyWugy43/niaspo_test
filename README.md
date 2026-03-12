@@ -130,7 +130,7 @@ kubectl apply -f k8s/pgadmin-deployment.yaml
 kubectl get svc pgadmin -n dev-env
 ```
 
-В колонке **EXTERNAL-IP** будет адрес (иногда он выставляется через 1–2 минуты). Откройте в браузере: **http://&lt;EXTERNAL-IP&gt;** (порт 80).
+В колонке **EXTERNAL-IP** будет адрес (иногда он выставляется через 1–2 минуты). Откройте в браузере: **http://&lt;EXTERNAL-IP&gt;:5050**.
 
 - **Вход в pgAdmin:** Email `admin@localhost`, пароль `admin`.
 - **Добавить сервер PostgreSQL:** в pgAdmin — Add New Server. На вкладке **Connection**: Host — **`db`** (имя сервиса в кластере), Port — **5432**, Username — **devuser**, Password — **devpass**, Database — **devdb**. Сохранить.

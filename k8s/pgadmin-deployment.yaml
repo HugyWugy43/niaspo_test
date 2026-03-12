@@ -18,7 +18,7 @@ spec:
           image: dpage/pgadmin4:8
           env:
             - name: PGADMIN_DEFAULT_EMAIL
-              value: admin@localhost
+              value: rodionovmax28@gmail.com
             - name: PGADMIN_DEFAULT_PASSWORD
               value: admin
             - name: PGADMIN_CONFIG_SERVER_MODE
@@ -39,5 +39,5 @@ spec:
     app: pgadmin
   ports:
     - name: http
-      port: 80
+      port: 5050
       targetPort: 80
